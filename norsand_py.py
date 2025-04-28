@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from norsand_functions import *
+from plotting import plot_all_results
 
 def main():
     """
@@ -287,99 +289,29 @@ def main():
     M_list = M_list[:max_steps]
     Mi_list = Mi_list[:max_steps]
     
-    # Plot results
+    # Create results dictionary
+    results = {
+        'p_list': p_list,
+        'q_list': q_list,
+        'eps1_list': eps1_list,
+        'p_ilist': p_ilist,
+        'dsigma1_list': dsigma1_list,
+        'dsigma2_list': dsigma2_list,
+        'dsigma3_list': dsigma3_list,
+        'eps_vol_list': eps_vol_list,
+        'D_list': D_list,
+        'eta_list': eta_list,
+        's1_list': s1_list,
+        's2_list': s2_list,
+        'soiltest': soiltest
+    }
     
-    # p-q stress path
-    plt.figure(figsize=(10, 8))
-    plt.plot(p_list, q_list, color='blue', linewidth=2, label='Stress path (ME)')
-    plt.xlabel('p (kPa)', fontsize=20)
-    plt.ylabel('q (kPa)', fontsize=20)
-    plt.title('Stress path in p-q space', fontsize=20)
-    plt.grid(True)
-    plt.legend()
-    plt.savefig('p_q_stress_path.png')
-    plt.close()
+    # Create output directory if it doesn't exist
+    save_dir = 'results'
+    os.makedirs(save_dir, exist_ok=True)
     
-    # q-epsilon_v stress-strain curve
-    plt.figure(figsize=(10, 8))
-    plt.plot(eps1_list, q_list, color='blue', linewidth=2, label='q-path (ME)')
-    plt.xlabel('ε_A', fontsize=20)
-    plt.ylabel('q (kPa)', fontsize=20)
-    plt.title('q-ε_A Curve', fontsize=20)
-    plt.grid(True)
-    plt.legend()
-    plt.savefig('q_eps_A_curve.png')
-    plt.close()
-    
-    # p_i-eps1 curve
-    plt.figure(figsize=(10, 8))
-    plt.plot(eps1_list, p_ilist, color='blue', linewidth=2, label='p_i-path (ME)')
-    plt.xlabel('ε_A', fontsize=20)
-    plt.ylabel('p_i (kPa)', fontsize=20)
-    plt.title('p_i  ε_A Curve', fontsize=20)
-    plt.grid(True)
-    plt.legend()
-    plt.savefig('p_i_eps_A_curve.png')
-    plt.close()
-    
-    # eps1-dsigma curve
-    plt.figure(figsize=(10, 8))
-    plt.plot(eps1_list, dsigma1_list, linewidth=2, label='dsigma1-path (ME)')
-    plt.plot(eps1_list, dsigma2_list, linewidth=2, label='dsigma2-path (ME)')
-    plt.plot(eps1_list, dsigma3_list, linewidth=2, label='dsigma3-path (ME)')
-    plt.xlabel('ε_A', fontsize=20)
-    plt.ylabel('dsigma1 (kPa)', fontsize=20)
-    plt.title('dsigma1-ε_A Curve', fontsize=20)
-    plt.grid(True)
-    plt.legend()
-    plt.savefig('dsigma_eps_A_curve.png')
-    plt.close()
-    
-    # strains curve
-    plt.figure(figsize=(10, 8))
-    plt.plot(eps1_list, eps_vol_list, color='blue', linewidth=2, label='Strains (ME)')
-    plt.xlabel('ε_1', fontsize=20)
-    plt.ylabel('ε_vol', fontsize=20)
-    plt.title('Strains', fontsize=20)
-    plt.grid(True)
-    plt.legend()
-    plt.savefig('strains_curve.png')
-    plt.close()
-    
-    # Dp-eta curve
-    plt.figure(figsize=(10, 8))
-    plt.plot(D_list, eta_list, color='blue', linewidth=2, label='ME')
-    plt.xlabel('D^p', fontsize=20)
-    plt.ylabel('η', fontsize=20)
-    plt.title('D^p vs. η', fontsize=20)
-    plt.grid(True)
-    plt.legend()
-    plt.savefig('Dp_eta_curve.png')
-    plt.close()
-    
-    # Additional plane-strain plots if applicable
-    if soiltest == 3:
-        plt.figure(figsize=(10, 8))
-        plt.plot(eps1_list, s1_list, color='blue', linewidth=2, label='σ_1 (ME)')
-        plt.plot(eps1_list, s2_list, color='red', linewidth=2, label='σ_2 (ME)')
-        plt.xlabel('ε_1', fontsize=20)
-        plt.ylabel('σ_1, σ_2', fontsize=20)
-        plt.title('Stresses vs. ε_1', fontsize=20)
-        plt.grid(True)
-        plt.ylim(bottom=0)
-        plt.legend()
-        plt.savefig('plane_strain_stresses.png')
-        plt.close()
-        
-        plt.figure(figsize=(10, 8))
-        plt.plot(eps1_list, eps_vol_list, color='blue', linewidth=2, label='Strains (ME)')
-        plt.xlabel('ε_1', fontsize=20)
-        plt.ylabel('ε_vol', fontsize=20)
-        plt.title('Strains', fontsize=20)
-        plt.grid(True)
-        plt.legend()
-        plt.savefig('plane_strain_strains.png')
-        plt.close()
+    # Plot all results
+    plot_all_results(results, save_dir)
 
 if __name__ == "__main__":
     main()
