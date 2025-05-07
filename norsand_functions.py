@@ -10,11 +10,11 @@ def findM(theta: float, M_tc: float) -> float:
     Compute M based on Lode angle and M_tc
     
     Args:
-        theta: Lode angle
-        M_tc: Critical state stress ratio in triaxial compression
+        theta: Lode angle (scalar)
+        M_tc: Critical state stress ratio in triaxial compression (scalar)
         
     Returns:
-        M_: Critical state stress ratio at given Lode angle
+        M_: Critical state stress ratio at given Lode angle (scalar)
     """
     g_theta = 1 - (M_tc / (3 + M_tc)) * np.cos((3 * theta) / 2 + np.pi / 4)
     M_ = M_tc * g_theta
@@ -25,14 +25,14 @@ def findM_i(M: float, M_tc: float, chi_i: float, psi_i: float, N: float) -> floa
     Compute image stress ratio M_i
     
     Args:
-        M: Critical state stress ratio
-        M_tc: Critical state stress ratio in triaxial compression
-        chi_i: Dilatancy parameter
-        psi_i: State parameter at image state
-        N: Material constant
+        M: Critical state stress ratio (scalar)
+        M_tc: Critical state stress ratio in triaxial compression (scalar)
+        chi_i: Dilatancy parameter (scalar)
+        psi_i: State parameter at image state (scalar)
+        N: Material constant (scalar)
         
     Returns:
-        Mi_: Image stress ratio
+        Mi_: Image stress ratio (scalar)
     """
     Mi_ = M * (1 - chi_i * N * np.abs(psi_i) / M_tc)
     return Mi_
@@ -42,13 +42,13 @@ def findM_itc(N: float, chi_i: float, psi_i: float, M_tc: float) -> float:
     Compute M_itc
     
     Args:
-        N: Material constant
-        chi_i: Dilatancy parameter
-        psi_i: State parameter at image state
-        M_tc: Critical state stress ratio in triaxial compression
+        N: Material constant (scalar)
+        chi_i: Dilatancy parameter (scalar)
+        psi_i: State parameter at image state (scalar)
+        M_tc: Critical state stress ratio in triaxial compression (scalar)
         
     Returns:
-        Mitc: M_itc parameter
+        Mitc: M_itc parameter (scalar)
     """
     Mitc = M_tc - N * chi_i * np.abs(psi_i)
     return Mitc
@@ -58,12 +58,12 @@ def findchi_i(M_tc: float, Chi_tc: float, Lambda: float) -> float:
     Compute chi_i parameter
     
     Args:
-        M_tc: Critical state stress ratio in triaxial compression
-        Chi_tc: Chi parameter in triaxial compression
-        Lambda: Material constant
+        M_tc: Critical state stress ratio in triaxial compression (scalar)
+        Chi_tc: Chi parameter in triaxial compression (scalar)
+        Lambda: Material constant (scalar)
         
     Returns:
-        chii: Chi_i parameter
+        chii: Chi_i parameter (scalar)
     """
     chii = Chi_tc / (1 - Lambda * Chi_tc / M_tc)
     return chii
@@ -73,15 +73,15 @@ def findpsipsii(Gamma: float, Lambda: float, p: float, p_i: float, e: float) -> 
     Compute psi and psi_i parameters
     
     Args:
-        Gamma: Material constant
-        Lambda: Material constant
-        p: Mean pressure
-        p_i: Image mean pressure
-        e: Void ratio
+        Gamma: Material constant (scalar)
+        Lambda: Material constant (scalar)
+        p: Mean pressure (scalar)
+        p_i: Image mean pressure (scalar)
+        e: Void ratio (scalar)
         
     Returns:
-        psi: State parameter
-        psi_i: State parameter at image state
+        psi: State parameter (scalar)
+        psi_i: State parameter at image state (scalar)
     """
     e_c = Gamma - Lambda * np.log(p)
     psi = e - e_c
@@ -93,13 +93,13 @@ def findp_imax(chi_i: float, psi_i: float, p: float, M_itc: float) -> float:
     Compute p_imax parameter
     
     Args:
-        chi_i: Dilatancy parameter
-        psi_i: State parameter at image state
-        p: Mean pressure
-        M_itc: M_itc parameter
+        chi_i: Dilatancy parameter (scalar)
+        psi_i: State parameter at image state (scalar)
+        p: Mean pressure (scalar)
+        M_itc: M_itc parameter (scalar)
         
     Returns:
-        p_imax: Maximum image pressure
+        p_imax: Maximum image pressure (scalar)
     """
     D_min = chi_i * psi_i
     p_imax = p * np.exp(-D_min / M_itc)
@@ -110,13 +110,13 @@ def findF(p: float, q: float, M_i: float, p_i: float) -> float:
     Compute yield surface value F
     
     Args:
-        p: Mean pressure
-        q: von Mises stress
-        M_i: Image stress ratio
-        p_i: Image mean pressure
+        p: Mean pressure (scalar)
+        q: von Mises stress (scalar)
+        M_i: Image stress ratio (scalar)
+        p_i: Image mean pressure (scalar)
         
     Returns:
-        F_: Yield surface value
+        F_: Yield surface value (scalar)
     """
     F_ = q / p - M_i * (1 - np.log(p / p_i))
     return F_
@@ -126,11 +126,12 @@ def finddFdsigma(sigma_vec: np.ndarray, dfdsig_params: np.ndarray) -> np.ndarray
     Compute derivative of yield function with respect to stress
     
     Args:
-        sigma_vec: Stress vector in Voigt notation
-        dfdsig_params: Parameters for computing dF/dsigma
+        sigma_vec: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23] (array of shape (6,))
+        dfdsig_params: Parameters for computing dF/dsigma (array of shape (7,))
+            [theta, N, M_i, M_tc, p_i, chi_i, psi_i]
         
     Returns:
-        dfdsig: Derivative of yield function with respect to stress
+        dfdsig: Derivative of yield function with respect to stress (array of shape (6,))
     """
     # Unpack parameters
     theta = dfdsig_params[0]
@@ -189,15 +190,16 @@ def finddFdepsilon_p(sigma_vec: np.ndarray, dfdep_params: np.ndarray, dfdsigma: 
     Compute derivative of yield function with respect to plastic strain
     
     Args:
-        sigma_vec: Stress vector in Voigt notation
-        dfdep_params: Parameters for computing dF/depsilon_p
-        dfdsigma: Derivative of yield function with respect to stress
+        sigma_vec: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23] (array of shape (6,))
+        dfdep_params: Parameters for computing dF/depsilon_p (array of shape (13,))
+            [H0, Hy, psi, N, M, M_i, M_tc, M_itc, p_i, p_imax, chi_i, psi_i, lambda]
+        dfdsigma: Derivative of yield function with respect to stress (array of shape (6,))
         
     Returns:
-        dfdep_dfdsig: dF/depsilon_p : dF/dsigma
-        dpideps_pd: dpi/depsilon_d^p
-        dfdpi: dF/dpi
-        dfdq_: dF/dq
+        dfdep_dfdsig: dF/depsilon_p : dF/dsigma (scalar)
+        dpideps_pd: dpi/depsilon_d^p (scalar)
+        dfdpi: dF/dpi (scalar)
+        dfdq_: dF/dq (scalar)
     """
     # Unpack parameters
     H0 = dfdep_params[0]
@@ -254,12 +256,12 @@ def findC_p(C: np.ndarray, dfdsigma: np.ndarray, dfdepsilon_dfdsigma: float) -> 
     Compute elasto-plastic tangent stiffness modulus
     
     Args:
-        C: Elastic tangent operator
-        dfdsigma: Derivative of yield function with respect to stress
-        dfdepsilon_dfdsigma: dF/depsilon_p : dF/dsigma
+        C: Elastic tangent operator (array of shape (6, 6))
+        dfdsigma: Derivative of yield function with respect to stress (array of shape (6,))
+        dfdepsilon_dfdsigma: dF/depsilon_p : dF/dsigma (scalar)
         
     Returns:
-        Cp: Elasto-plastic tangent stiffness modulus
+        Cp: Elasto-plastic tangent stiffness modulus (array of shape (6, 6))
     """
     # Compute dF/dsigma ^ T : C : dF/dsigma
     dfdsig_C_dfdsig = (dfdsigma @ C) @ dfdsigma
@@ -274,13 +276,13 @@ def find_dlambda_p(C: np.ndarray, dfdsigma: np.ndarray, dfdepsilon_dfdsigma: flo
     Compute change in plastic multiplier
     
     Args:
-        C: Elastic tangent operator
-        dfdsigma: Derivative of yield function with respect to stress
-        dfdepsilon_dfdsigma: dF/depsilon_p : dF/dsigma
-        depsilon: Strain increment
+        C: Elastic tangent operator (array of shape (6, 6))
+        dfdsigma: Derivative of yield function with respect to stress (array of shape (6,))
+        dfdepsilon_dfdsigma: dF/depsilon_p : dF/dsigma (scalar)
+        depsilon: Strain increment (array of shape (6,))
         
     Returns:
-        dlambda_p: Change in plastic multiplier
+        dlambda_p: Change in plastic multiplier (scalar)
     """
     term1 = np.dot(dfdsigma, C @ depsilon)
     term2 = np.dot(dfdsigma, C @ dfdsigma) - dfdepsilon_dfdsigma
@@ -294,19 +296,19 @@ def findp_ipsi_iM_i(N: float, chi_i: float, lamb: float, M_tc: float, psi: float
     Find p_i, psi_i and M_i
     
     Args:
-        N: Material constant
-        chi_i: Dilatancy parameter
-        lamb: Lambda parameter
-        M_tc: Critical state stress ratio in triaxial compression
-        psi: State parameter
-        p: Mean pressure
-        q: von Mises stress
-        M: Critical state stress ratio
+        N: Material constant (scalar)
+        chi_i: Dilatancy parameter (scalar)
+        lamb: Lambda parameter (scalar)
+        M_tc: Critical state stress ratio in triaxial compression (scalar)
+        psi: State parameter (scalar)
+        p: Mean pressure (scalar)
+        q: von Mises stress (scalar)
+        M: Critical state stress ratio (scalar)
         
     Returns:
-        p_i: Image mean pressure
-        psii: State parameter at image state
-        Mi: Image stress ratio
+        p_i: Image mean pressure (scalar)
+        psii: State parameter at image state (scalar)
+        Mi: Image stress ratio (scalar)
     """
     # Set up terms to be used in four quadratic options
     a = N * chi_i * lamb / M_tc
