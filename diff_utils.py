@@ -5,16 +5,28 @@ import warnings
 
 
 def stress_decomp(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute mean pressure p and von Mises stress q from stress vector
     
+    The mean pressure and von Mises stress are computed as:
+    
+    .. math::
+        p = \frac{1}{3}(\sigma_{11} + \sigma_{22} + \sigma_{33}) = \frac{1}{3}I_1
+        
+    .. math::
+        q = \sqrt{\frac{3}{2}J_2} = \sqrt{\frac{1}{2}[(\sigma_{11}-\sigma_{22})^2 + (\sigma_{22}-\sigma_{33})^2 + (\sigma_{33}-\sigma_{11})^2 + 6(\sigma_{12}^2 + \sigma_{13}^2 + \sigma_{23}^2)]}
+    
+    where :math:`I_1` is the first stress invariant and :math:`J_2` is the second deviatoric stress invariant.
+    
     Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 
         1D tensor of shape (6,)
         
     Returns:
-        p_: Mean pressure (1/3 of first invariant)
-        q_: von Mises stress (square root of 3/2 of second invariant of deviatoric stress)
+        tuple: A tuple containing:
+        
+            - **p_** (*torch.Tensor*) - Mean pressure :math:`p` (1/3 of first invariant)
+            - **q_** (*torch.Tensor*) - von Mises stress :math:`q` (square root of 3/2 of second invariant of deviatoric stress)
     """
     # Apply tension cutoffs differentiably using torch.clamp
     sigma_copy = torch.clamp(sigma, min=0.1)
@@ -32,17 +44,32 @@ def stress_decomp(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
 
 
 def find_sJ2J3(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute deviatoric stress tensor s, and J2, J3 invariants
     
+    The deviatoric stress tensor and its invariants are computed as:
+    
+    .. math::
+        \mathbf{s} = \boldsymbol{\sigma} - p\mathbf{I}
+        
+    .. math::
+        J_2 = \frac{1}{2}\mathbf{s}:\mathbf{s} = \frac{1}{2}(s_{11}^2 + s_{22}^2 + s_{33}^2 + 2s_{12}^2 + 2s_{13}^2 + 2s_{23}^2)
+        
+    .. math::
+        J_3 = \det(\mathbf{s}) = s_{11}s_{22}s_{33} - s_{11}s_{23}^2 - s_{33}s_{12}^2 - s_{22}s_{13}^2 + 2s_{12}s_{13}s_{23}
+    
+    where :math:`\mathbf{I}` is the identity tensor.
+    
     Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 
         1D tensor of shape (6,)
         
     Returns:
-        s: Deviatoric stress vector, 1D tensor of shape (6,)
-        J_2: Second invariant of deviatoric stress
-        J_3: Third invariant of deviatoric stress
+        tuple: A tuple containing:
+        
+            - **s** (*torch.Tensor*) - Deviatoric stress vector :math:`\mathbf{s}`, 1D tensor of shape (6,)
+            - **J_2** (*torch.Tensor*) - Second invariant of deviatoric stress :math:`J_2`
+            - **J_3** (*torch.Tensor*) - Third invariant of deviatoric stress :math:`J_3`
     """
     p, _ = stress_decomp(sigma)
     
@@ -65,26 +92,35 @@ def find_sJ2J3(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.T
 
 
 def vol_dev(sigma: torch.Tensor, epsilon: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute volumetric strain and deviatoric strain in Voigt notation
-    NOTE: This function needs check.
     
-    Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 
-        1D tensor of shape (6,) - NOTE: This parameter is not used in computation
-        but kept for backward compatibility
-        epsilon: Strain vector in Voigt notation [ε11, ε22, ε33, ε12, ε13, ε23], 
-        1D tensor of shape (6,)
+    The volumetric and deviatoric strain are computed as:
+    
+    .. math::
+        \varepsilon_v = \varepsilon_{11} + \varepsilon_{22} + \varepsilon_{33} = \text{tr}(\boldsymbol{\varepsilon})
         
-    Returns:
-        e_v: Volumetric strain
-        e_q: Deviatoric strain (standard magnitude, depends only on strain)
-        
+    .. math::
+        \varepsilon_q = \sqrt{\frac{2}{3}[(\varepsilon_{11} - \frac{\varepsilon_v}{3})^2 + (\varepsilon_{22} - \frac{\varepsilon_v}{3})^2 + (\varepsilon_{33} - \frac{\varepsilon_v}{3})^2 + 2(\varepsilon_{12}^2 + \varepsilon_{13}^2 + \varepsilon_{23}^2)]}
+    
     Note:
         This function computes the standard deviatoric strain magnitude which depends
         only on the strain tensor. The sigma parameter is kept for backward compatibility
         but is not used in the computation. For stress-dependent deviatoric strain,
         use vol_dev_stress_weighted() instead.
+        
+    Args:
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 
+        1D tensor of shape (6,) - NOTE: This parameter is not used in computation
+        but kept for backward compatibility
+        epsilon: Strain vector in Voigt notation :math:`[\varepsilon_{11}, \varepsilon_{22}, \varepsilon_{33}, \varepsilon_{12}, \varepsilon_{13}, \varepsilon_{23}]`, 
+        1D tensor of shape (6,)
+        
+    Returns:
+        tuple: A tuple containing:
+        
+            - **e_v** (*torch.Tensor*) - Volumetric strain :math:`\varepsilon_v`
+            - **e_q** (*torch.Tensor*) - Deviatoric strain :math:`\varepsilon_q` (standard magnitude, depends only on strain)
     """
     # # Issue a deprecation-style warning about unused sigma parameter
     # warnings.warn(
@@ -136,21 +172,31 @@ def vol_dev(sigma: torch.Tensor, epsilon: torch.Tensor) -> Tuple[torch.Tensor, t
 
 
 def vol_dev_stress_weighted(sigma: torch.Tensor, epsilon: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute volumetric strain and stress-weighted deviatoric strain in Voigt notation
     
-    This function computes a stress-weighted deviatoric strain, which represents the strain
-    increment in the direction of the stress deviator. This is used in some plasticity models.
+    This function computes a stress-weighted deviatoric strain:
+    
+    .. math::
+        \varepsilon_v = \varepsilon_{11} + \varepsilon_{22} + \varepsilon_{33}
+        
+    .. math::
+        \varepsilon_q^{weighted} = \frac{1}{q}\left[(\sigma_{11}-p)\varepsilon_{11} + (\sigma_{22}-p)\varepsilon_{22} + (\sigma_{33}-p)\varepsilon_{33} + 2\sigma_{12}\varepsilon_{12} + 2\sigma_{13}\varepsilon_{13} + 2\sigma_{23}\varepsilon_{23}\right]
+    
+    where :math:`p` is the mean stress, :math:`q` is the von Mises stress.
+    This represents the strain increment in the direction of the stress deviator.
     
     Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 
         1D tensor of shape (6,)
-        epsilon: Strain vector in Voigt notation [ε11, ε22, ε33, ε12, ε13, ε23], 
+        epsilon: Strain vector in Voigt notation :math:`[\varepsilon_{11}, \varepsilon_{22}, \varepsilon_{33}, \varepsilon_{12}, \varepsilon_{13}, \varepsilon_{23}]`, 
         1D tensor of shape (6,)
         
     Returns:
-        e_v: Volumetric strain
-        e_q_weighted: Stress-weighted deviatoric strain
+        tuple: A tuple containing:
+        
+            - **e_v** (*torch.Tensor*) - Volumetric strain :math:`\varepsilon_v`
+            - **e_q_weighted** (*torch.Tensor*) - Stress-weighted deviatoric strain :math:`\varepsilon_q^{weighted}`
     """
     p, q = stress_decomp(sigma)
     e_v = torch.sum(epsilon[0:3])
@@ -172,17 +218,29 @@ def vol_dev_stress_weighted(sigma: torch.Tensor, epsilon: torch.Tensor) -> Tuple
 
 
 def lode_angle(sigma: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute Lode angle from stress vector
     
+    The Lode angle is computed as:
+    
+    .. math::
+        \sin(3\theta) = \frac{3\sqrt{3}}{2} \frac{J_3}{J_2^{3/2}}
+        
+    .. math::
+        \theta = \frac{1}{3}\arcsin(\sin(3\theta))
+    
+    where :math:`\theta \in [-\pi/6, \pi/6]` is the Lode angle, :math:`J_2` and :math:`J_3` are the second 
+    and third deviatoric stress invariants.
+    
     Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 
         1D tensor of shape (6,)
         
     Returns:
-        theta: Lode angle in radians
+        torch.Tensor: Lode angle :math:`\theta` in radians
         
-    NOTE: This function is not fully rigorous at the threshold values about differentiability.
+    Note:
+        This function is not fully rigorous at the threshold values about differentiability.
     """
     _, J_2, J_3 = find_sJ2J3(sigma)
     
@@ -215,18 +273,38 @@ def findCe(
     m: torch.Tensor, 
     nu: torch.Tensor,
 ) -> torch.Tensor:
-    """
+    r"""
     Compute elastic tangent operator
     
+    The elastic tangent operator is computed using:
+    
+    .. math::
+        G = G_{max} \left(\frac{p}{p_{ref}}\right)^m
+        
+    .. math::
+        K = \frac{2(1+\nu)}{3(1-2\nu)} G
+        
+    .. math::
+        \mathbf{C}^e = \begin{bmatrix}
+        K + \frac{4}{3}G & K - \frac{2}{3}G & K - \frac{2}{3}G & 0 & 0 & 0 \\
+        K - \frac{2}{3}G & K + \frac{4}{3}G & K - \frac{2}{3}G & 0 & 0 & 0 \\
+        K - \frac{2}{3}G & K - \frac{2}{3}G & K + \frac{4}{3}G & 0 & 0 & 0 \\
+        0 & 0 & 0 & G & 0 & 0 \\
+        0 & 0 & 0 & 0 & G & 0 \\
+        0 & 0 & 0 & 0 & 0 & G
+        \end{bmatrix}
+    
+    where :math:`G` is the shear modulus, :math:`K` is the bulk modulus, and :math:`\nu` is Poisson's ratio.
+    
     Args:
-        G_max: Maximum shear modulus, 1D tensor
-        p: Mean pressure, 1D tensor
-        p_ref: Reference pressure, 1D tensor
-        m: Pressure exponent, 1D tensor
-        nu: Poisson's ratio, 1D tensor
+        G_max: Maximum shear modulus :math:`G_{max}`, 1D tensor
+        p: Mean pressure :math:`p`, 1D tensor
+        p_ref: Reference pressure :math:`p_{ref}`, 1D tensor
+        m: Pressure exponent :math:`m`, 1D tensor
+        nu: Poisson's ratio :math:`\nu`, 1D tensor
         
     Returns:
-        C_e: Elastic tangent operator matrix, 2D tensor of shape (6, 6)
+        torch.Tensor: Elastic tangent operator matrix :math:`\mathbf{C}^e`, 2D tensor of shape (6, 6)
     """
     G = G_max * (p / p_ref) ** m
     K = ((2 * (1 + nu)) / (3 * (1 - 2 * nu))) * G
@@ -249,13 +327,23 @@ def findCe(
 
 def voigt_norm(voigt_vec: torch.Tensor) -> torch.Tensor:
     """
-    Compute L2 norm of Voigt vector with proper scaling for tensor operations.
+    Compute L2 norm of stress tensor in Voigt notation with proper scaling.
+    
+    The Frobenius norm of a stress tensor represented in Voigt notation is:
+    
+    .. math::
+        ||\boldsymbol{\sigma}||_F = \sqrt{\sum_{i=1}^{3} \sigma_{ii}^2 + 2\sum_{i=4}^{6} \sigma_{ij}^2}
+        
+    .. math::
+        = \sqrt{\sigma_{11}^2 + \sigma_{22}^2 + \sigma_{33}^2 + 2(\sigma_{12}^2 + \sigma_{13}^2 + \sigma_{23}^2)}
+    
+    where the factor of 2 accounts for the off-diagonal shear stress terms appearing twice in the full tensor.
 
     Args:
-        voigt_vec (torch.Tensor): Voigt notation tensor [σ11, σ22, σ33, σ12, σ13, σ23], shape (6,)
+        voigt_vec (torch.Tensor): Stress tensor in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, shape (6,)
 
     Returns:
-        torch.Tensor: Frobenius norm of the corresponding full tensor.
+        torch.Tensor: Frobenius norm :math:`||\boldsymbol{\sigma}||_F` of the stress tensor.
     """
     scale = torch.ones_like(voigt_vec)
     scale[3:6] = torch.sqrt(torch.tensor(2.0, device=voigt_vec.device, dtype=voigt_vec.dtype))
@@ -269,13 +357,14 @@ def dJ2J3(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     Compute derivatives of J2, J3 invariants with respect to sigma using PyTorch's autodiff
     
     Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 1D tensor of shape (6,)
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 1D tensor of shape (6,)
         
     Returns:
-        dJ2_dsigma: Derivative of J2 with respect to sigma, 1D tensor of shape (6,)
-        dJ3_dsigma: Derivative of J3 with respect to sigma, 1D tensor of shape (6,)
+        dJ2_dsigma: Derivative of :math:`J_2` with respect to :math:`\boldsymbol{\sigma}`, 1D tensor of shape (6,)
+        dJ3_dsigma: Derivative of :math:`J_3` with respect to :math:`\boldsymbol{\sigma}`, 1D tensor of shape (6,)
         
-    # NOTE: Complete the combined test for this function.
+    Note:
+        Complete the combined test for this function.
     """
     # Create a copy of the input tensor that requires gradients
     sigma_grad = sigma.detach().clone().requires_grad_(True)
@@ -295,16 +384,21 @@ def dJ2J3(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
 
 
 def dJ2J3_analytical(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute derivatives of J2, J3 invariants with respect to sigma using analytical formulas
     
     Args:
-        sigma: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23], 1D tensor of shape (6,)
+        sigma: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]`, 1D tensor of shape (6,)
         
     Returns:
-        dJ2_dsigma: Derivative of J2 with respect to sigma, 1D tensor of shape (6,)
-        dJ3_dsigma: Derivative of J3 with respect to sigma, 1D tensor of shape (6,)
+        tuple: A tuple containing:
+        
+            - **dJ2_dsigma** (*torch.Tensor*) - Derivative of :math:`J_2` with respect to :math:`\boldsymbol{\sigma}`, 1D tensor of shape (6,)
+            - **dJ3_dsigma** (*torch.Tensor*) - Derivative of :math:`J_3` with respect to :math:`\boldsymbol{\sigma}`, 1D tensor of shape (6,)
     
+    Warning:
+        The current implementation of :math:`\frac{\partial J_3}{\partial \boldsymbol{\sigma}}` contains errors. 
+        See test cases in test/test_diff_utils.py. Use :func:`dJ2J3` for reliable gradient computation.
     """
     s, _, _ = find_sJ2J3(sigma)
     dJ2_dsigma = torch.tensor([s[0], s[1], s[2], 2*sigma[3], 2*sigma[4], 2*sigma[5]], 

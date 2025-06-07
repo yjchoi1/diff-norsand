@@ -1,0 +1,6 @@
+sphinx>=4.0.0
+myst-parser>=0.18.0
+sphinx-rtd-theme
+linkify-it-py
+torch
+numpy 

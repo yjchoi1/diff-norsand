@@ -16,3 +16,8 @@ debug/
 *.png
 NOTE.md
 *.csv
+
+# Documentation build files
+docs/build/
+docs/source/_build/
+*.doctree

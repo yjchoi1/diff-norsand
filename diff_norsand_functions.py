@@ -7,15 +7,23 @@ from diff_utils import (
 )
 
 def findM(theta: torch.Tensor, M_tc: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute M based on Lode angle and M_tc
     
+    The critical state stress ratio M varies with the Lode angle according to:
+    
+    .. math::
+        g(\theta) = 1 - \frac{M_{tc}}{3 + M_{tc}} \cos\left(\frac{3\theta}{2} + \frac{\pi}{4}\right)
+        
+    .. math::
+        M = M_{tc} \cdot g(\theta)
+    
     Args:
-        theta: Lode angle
-        M_tc: Critical state stress ratio in triaxial compression
+        theta: Lode angle :math:`\theta`
+        M_tc: Critical state stress ratio in triaxial compression :math:`M_{tc}`
         
     Returns:
-        M_: Critical state stress ratio at given Lode angle
+        torch.Tensor: Critical state stress ratio at given Lode angle :math:`M`
     """
     g_theta = 1 - (M_tc / (3 + M_tc)) * torch.cos((3 * theta) / 2 + torch.pi / 4)
     M_ = M_tc * g_theta
@@ -25,22 +33,27 @@ def findM(theta: torch.Tensor, M_tc: torch.Tensor) -> torch.Tensor:
 def findM_i(M: torch.Tensor, M_tc: torch.Tensor, 
            chi_i: torch.Tensor, psi_i: torch.Tensor, 
            N: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute image stress ratio M_i
     
+    The image stress ratio is computed as:
+    
+    .. math::
+        M_i = M \left(1 - \frac{\chi_i N |\psi_i|}{M_{tc}}\right)
+    
     Args:
-        M: Critical state stress ratio
-        M_tc: Critical state stress ratio in triaxial compression
-        chi_i: Dilatancy parameter
-        psi_i: State parameter at image state
-        N: Material constant
+        M: Critical state stress ratio :math:`M`
+        M_tc: Critical state stress ratio in triaxial compression :math:`M_{tc}`
+        chi_i: Dilatancy parameter :math:`\chi_i`
+        psi_i: State parameter at image state :math:`\psi_i`
+        N: Material constant :math:`N`
         
     Returns:
-        Mi_: Image stress ratio
+        torch.Tensor: Image stress ratio :math:`M_i`
         
-    # NOTE: Does `psi_i` often cross zero? If so, 
-    #       we need to handle the absolute value case differently.
-    #       we may need to use smooth approximations for the absolute value function.
+    Note:
+        The absolute value :math:`|\psi_i|` may require smooth approximations 
+        for gradient-based optimization if :math:`\psi_i` frequently crosses zero.
     """
     Mi_ = M * (1 - chi_i * N * torch.abs(psi_i) / M_tc)
     return Mi_
@@ -51,30 +64,40 @@ def findM_itc(N: torch.Tensor, chi_i: torch.Tensor, psi_i: torch.Tensor, M_tc: t
     """
     Compute M_itc
     
+    The triaxial compression image stress ratio is:
+    
+    .. math::
+        M_{itc} = M_{tc} - N \chi_i |\psi_i|
+    
     Args:
-        N: Material constant
-        chi_i: Dilatancy parameter
-        psi_i: State parameter at image state
-        M_tc: Critical state stress ratio in triaxial compression
+        N: Material constant :math:`N`
+        chi_i: Dilatancy parameter :math:`\chi_i`
+        psi_i: State parameter at image state :math:`\psi_i`
+        M_tc: Critical state stress ratio in triaxial compression :math:`M_{tc}`
         
     Returns:
-        Mitc: M_itc parameter
+        Mitc: M_itc parameter :math:`M_{itc}`
     """
     Mitc = M_tc - N * chi_i * torch.abs(psi_i)
     return Mitc
 
 
 def findchi_i(M_tc: torch.Tensor, Chi_tc: torch.Tensor, Lambda: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute chi_i parameter
     
+    The dilatancy parameter is computed as:
+    
+    .. math::
+        \chi_i = \frac{\chi_{tc}}{1 - \frac{\Lambda \chi_{tc}}{M_{tc}}}
+    
     Args:
-        M_tc: Critical state stress ratio in triaxial compression
-        Chi_tc: Chi parameter in triaxial compression
-        Lambda: Material constant
+        M_tc: Critical state stress ratio in triaxial compression :math:`M_{tc}`
+        Chi_tc: Chi parameter in triaxial compression :math:`\chi_{tc}`
+        Lambda: Material constant :math:`\Lambda`
         
     Returns:
-        chii: Chi_i parameter
+        torch.Tensor: Chi_i parameter :math:`\chi_i`
     """
     chii = Chi_tc / (1 - Lambda * Chi_tc / M_tc)
     return chii
@@ -85,16 +108,27 @@ def findpsipsii(Gamma: torch.Tensor, Lambda: torch.Tensor, p: torch.Tensor,
     """
     Compute psi and psi_i parameters
     
+    The state parameters are computed as:
+    
+    .. math::
+        e_c = \Gamma - \Lambda \ln(p)
+        
+    .. math::
+        \psi = e - e_c
+        
+    .. math::
+        \psi_i = e - \Gamma + \Lambda \ln(p_i)
+    
     Args:
-        Gamma: Material constant
-        Lambda: Material constant
-        p: Mean pressure
-        p_i: Image mean pressure
-        e: Void ratio
+        Gamma: Material constant :math:`\Gamma`
+        Lambda: Material constant :math:`\Lambda`
+        p: Mean pressure :math:`p`
+        p_i: Image mean pressure :math:`p_i`
+        e: Void ratio :math:`e`
         
     Returns:
-        psi: State parameter
-        psi_i: State parameter at image state
+        psi: State parameter :math:`\psi`
+        psi_i: State parameter at image state :math:`\psi_i`
     """
     e_c = Gamma - Lambda * torch.log(p)
     psi = e - e_c
@@ -110,14 +144,22 @@ def findp_imax(chi_i: torch.Tensor, psi_i: torch.Tensor, p: torch.Tensor, M_itc:
     """
     Compute p_imax parameter
     
+    The maximum image pressure is computed as:
+    
+    .. math::
+        D_{min} = \chi_i \psi_i
+        
+    .. math::
+        p_{imax} = p \exp\left(-\frac{D_{min}}{M_{itc}}\right)
+    
     Args:
-        chi_i: Dilatancy parameter
-        psi_i: State parameter at image state
-        p: Mean pressure
-        M_itc: M_itc parameter
+        chi_i: Dilatancy parameter :math:`\chi_i`
+        psi_i: State parameter at image state :math:`\psi_i`
+        p: Mean pressure :math:`p`
+        M_itc: M_itc parameter :math:`M_{itc}`
         
     Returns:
-        p_imax: Maximum image pressure
+        p_imax: Maximum image pressure :math:`p_{imax}`
     """
     D_min = chi_i * psi_i
     p_imax = p * torch.exp(-D_min / M_itc)
@@ -125,33 +167,45 @@ def findp_imax(chi_i: torch.Tensor, psi_i: torch.Tensor, p: torch.Tensor, M_itc:
 
 
 def findF(p: torch.Tensor, q: torch.Tensor, M_i: torch.Tensor, p_i: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute yield surface value F
     
+    The yield surface is defined as:
+    
+    .. math::
+        F = \frac{q}{p} - M_i \left(1 - \ln\left(\frac{p}{p_i}\right)\right)
+    
     Args:
-        p: Mean pressure
-        q: von Mises stress
-        M_i: Image stress ratio
-        p_i: Image mean pressure
+        p: Mean pressure :math:`p`
+        q: von Mises stress :math:`q`
+        M_i: Image stress ratio :math:`M_i`
+        p_i: Image mean pressure :math:`p_i`
         
     Returns:
-        F_: Yield surface value
+        torch.Tensor: Yield surface value :math:`F`
     """
     F_ = q / p - M_i * (1 - torch.log(p / p_i))
     return F_
 
 
 def finddFdsigma(sigma_vec: torch.Tensor, M_i: torch.Tensor, p_i: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute derivative of yield function with respect to stress using automatic differentiation
     
+    Computes:
+    
+    .. math::
+        \frac{\partial F}{\partial \boldsymbol{\sigma}} = \nabla_{\boldsymbol{\sigma}} F
+    
+    where :math:`F` is the yield function and :math:`\boldsymbol{\sigma}` is the stress vector.
+    
     Args:
-        sigma_vec: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23] (tensor of shape (6,))
-        M_i: Image stress ratio (scalar tensor)
-        p_i: Image mean pressure (scalar tensor)
+        sigma_vec: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]` (tensor of shape (6,))
+        M_i: Image stress ratio :math:`M_i` (scalar tensor)
+        p_i: Image mean pressure :math:`p_i` (scalar tensor)
         
     Returns:
-        dfdsig: Derivative of yield function with respect to stress (tensor of shape (6,))
+        torch.Tensor: Derivative of yield function with respect to stress :math:`\frac{\partial F}{\partial \boldsymbol{\sigma}}` (tensor of shape (6,))
     """
     # Make sure sigma_vec requires gradients
     if not sigma_vec.requires_grad:
@@ -173,20 +227,38 @@ def findp_ipsi_iM_i(N, chi_i, lambd, M_tc, psi, p, q, M):
     """
     Find p_i, psi_i and M_i using PyTorch (differentiable version)
     
+    Solves the system of equations for the image state parameters by finding roots of:
+    
+    .. math::
+        F = 0 \quad \text{(yield surface condition)}
+        
+    where the unknowns are solved iteratively through quadratic equations involving 
+    the dimensionless parameter :math:`x = \ln(p_i/p)`.
+    
+    The solution involves:
+    
+    .. math::
+        a = \frac{N \chi_i \lambda}{M_{tc}}
+        
+    .. math::
+        ax^2 + bx + c = 0
+    
+    with different coefficients depending on the sign of :math:`\psi_i`.
+    
     Args:
-        N: Material constant (scalar)
-        chi_i: Dilatancy parameter (scalar)
-        lamb: Lambda parameter (scalar)
-        M_tc: Critical state stress ratio in triaxial compression (scalar)
-        psi: State parameter (scalar)
-        p: Mean pressure (scalar)
-        q: von Mises stress (scalar)
-        M: Critical state stress ratio (scalar)
+        N: Material constant :math:`N` (scalar)
+        chi_i: Dilatancy parameter :math:`\chi_i` (scalar)
+        lambd: Lambda parameter :math:`\lambda` (scalar)
+        M_tc: Critical state stress ratio in triaxial compression :math:`M_{tc}` (scalar)
+        psi: State parameter :math:`\psi` (scalar)
+        p: Mean pressure :math:`p` (scalar)
+        q: von Mises stress :math:`q` (scalar)
+        M: Critical state stress ratio :math:`M` (scalar)
         
     Returns:
-        p_i: Image mean pressure (scalar)
-        psii: State parameter at image state (scalar)
-        Mi: Image stress ratio (scalar)
+        p_i: Image mean pressure :math:`p_i` (scalar)
+        psii: State parameter at image state :math:`\psi_i` (scalar)
+        Mi: Image stress ratio :math:`M_i` (scalar)
         
     Raises:
         RuntimeError: If no valid roots are found
@@ -286,16 +358,21 @@ def findp_ipsi_iM_i(N, chi_i, lambd, M_tc, psi, p, q, M):
 
 
 def findC_p(C: torch.Tensor, dfdsigma: torch.Tensor, dfdepsilon_dfdsigma: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute elasto-plastic tangent stiffness modulus
     
+    The elasto-plastic tangent operator is computed as:
+    
+    .. math::
+        \mathbf{C}^{ep} = \mathbf{C} - \frac{\mathbf{C} \frac{\partial F}{\partial \boldsymbol{\sigma}} \otimes \frac{\partial F}{\partial \boldsymbol{\sigma}} \mathbf{C}}{\frac{\partial F}{\partial \boldsymbol{\sigma}} : \mathbf{C} : \frac{\partial F}{\partial \boldsymbol{\sigma}} - \frac{\partial F}{\partial \boldsymbol{\varepsilon}^p} : \frac{\partial F}{\partial \boldsymbol{\sigma}}}
+    
     Args:
-        C: Elastic tangent operator (tensor of shape (6, 6))
-        dfdsigma: Derivative of yield function with respect to stress (tensor of shape (6,))
-        dfdepsilon_dfdsigma: dF/depsilon_p : dF/dsigma (scalar tensor)
+        C: Elastic tangent operator :math:`\mathbf{C}` (tensor of shape (6, 6))
+        dfdsigma: Derivative of yield function with respect to stress :math:`\frac{\partial F}{\partial \boldsymbol{\sigma}}` (tensor of shape (6,))
+        dfdepsilon_dfdsigma: :math:`\frac{\partial F}{\partial \boldsymbol{\varepsilon}^p} : \frac{\partial F}{\partial \boldsymbol{\sigma}}` (scalar tensor)
         
     Returns:
-        Cp: Elasto-plastic tangent stiffness modulus (tensor of shape (6, 6))
+        torch.Tensor: Elasto-plastic tangent stiffness modulus :math:`\mathbf{C}^{ep}` (tensor of shape (6, 6))
     """
     # Compute dF/dsigma ^ T : C : dF/dsigma
     dfdsig_C_dfdsig = torch.matmul(torch.matmul(dfdsigma, C), dfdsigma)
@@ -311,20 +388,35 @@ def finddFdepsilon_p(
     dfdep_params: torch.Tensor, 
     dfdsigma: torch.Tensor
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute derivative of yield function with respect to plastic strain
     
+    Computes the hardening law derivatives:
+    
+    .. math::
+        \frac{\partial F}{\partial \boldsymbol{\varepsilon}^p} : \frac{\partial F}{\partial \boldsymbol{\sigma}} = \frac{\partial F}{\partial p_i} \frac{\partial p_i}{\partial \varepsilon_d^p} \frac{\partial F}{\partial q}
+    
+    where:
+    
+    .. math::
+        \frac{\partial p_i}{\partial \varepsilon_d^p} = H \frac{M_i}{M_{itc}} (p_{imax} - p_i) \frac{p}{p_i}
+        
+    .. math::
+        H = H_0 - H_y \psi
+    
     Args:
-        sigma_vec: Stress vector in Voigt notation [σ11, σ22, σ33, σ12, σ13, σ23] (tensor of shape (6,))
-        dfdep_params: Parameters for computing dF/depsilon_p (tensor of shape (13,))
-            [H0, Hy, psi, N, M, M_i, M_tc, M_itc, p_i, p_imax, chi_i, psi_i, lambda]
-        dfdsigma: Derivative of yield function with respect to stress (tensor of shape (6,))
+        sigma_vec: Stress vector in Voigt notation :math:`[\sigma_{11}, \sigma_{22}, \sigma_{33}, \sigma_{12}, \sigma_{13}, \sigma_{23}]` (tensor of shape (6,))
+        dfdep_params: Parameters for computing :math:`\frac{\partial F}{\partial \boldsymbol{\varepsilon}^p}` (tensor of shape (13,))
+                     :math:`[H_0, H_y, \psi, N, M, M_i, M_{tc}, M_{itc}, p_i, p_{imax}, \chi_i, \psi_i, \lambda]`
+        dfdsigma: Derivative of yield function with respect to stress :math:`\frac{\partial F}{\partial \boldsymbol{\sigma}}` (tensor of shape (6,))
         
     Returns:
-        dfdep_dfdsig: dF/depsilon_p : dF/dsigma (scalar tensor)
-        dpideps_pd: dpi/depsilon_d^p (scalar tensor)
-        dfdpi: dF/dpi (scalar tensor)
-        dfdq_: dF/dq (scalar tensor)
+        tuple: A tuple containing:
+        
+            - **dfdep_dfdsig** (*torch.Tensor*) - :math:`\frac{\partial F}{\partial \boldsymbol{\varepsilon}^p} : \frac{\partial F}{\partial \boldsymbol{\sigma}}` (scalar tensor)
+            - **dpideps_pd** (*torch.Tensor*) - :math:`\frac{\partial p_i}{\partial \varepsilon_d^p}` (scalar tensor)
+            - **dfdpi** (*torch.Tensor*) - :math:`\frac{\partial F}{\partial p_i}` (scalar tensor)
+            - **dfdq_** (*torch.Tensor*) - :math:`\frac{\partial F}{\partial q}` (scalar tensor)
     """
     # Unpack parameters
     H0 = dfdep_params[0]
@@ -377,17 +469,22 @@ def finddFdepsilon_p(
 
 
 def find_dlambda_p(C: torch.Tensor, dfdsigma: torch.Tensor, dfdepsilon_dfdsigma: torch.Tensor, depsilon: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute change in plastic multiplier (differentiable PyTorch version)
     
+    The plastic multiplier increment is computed from the consistency condition:
+    
+    .. math::
+        d\lambda = \frac{\frac{\partial F}{\partial \boldsymbol{\sigma}} : \mathbf{C} : d\boldsymbol{\varepsilon}}{\frac{\partial F}{\partial \boldsymbol{\sigma}} : \mathbf{C} : \frac{\partial F}{\partial \boldsymbol{\sigma}} - \frac{\partial F}{\partial \boldsymbol{\varepsilon}^p} : \frac{\partial F}{\partial \boldsymbol{\sigma}}}
+    
     Args:
-        C: Elastic tangent operator (tensor of shape (6, 6))
-        dfdsigma: Derivative of yield function with respect to stress (tensor of shape (6,))
-        dfdepsilon_dfdsigma: dF/depsilon_p : dF/dsigma (scalar tensor)
-        depsilon: Strain increment (tensor of shape (6,))
+        C: Elastic tangent operator :math:`\mathbf{C}` (tensor of shape (6, 6))
+        dfdsigma: Derivative of yield function with respect to stress :math:`\frac{\partial F}{\partial \boldsymbol{\sigma}}` (tensor of shape (6,))
+        dfdepsilon_dfdsigma: :math:`\frac{\partial F}{\partial \boldsymbol{\varepsilon}^p} : \frac{\partial F}{\partial \boldsymbol{\sigma}}` (scalar tensor)
+        depsilon: Strain increment :math:`d\boldsymbol{\varepsilon}` (tensor of shape (6,))
         
     Returns:
-        dlambda_p: Change in plastic multiplier (scalar tensor)
+        torch.Tensor: Change in plastic multiplier :math:`d\lambda` (scalar tensor)
     """
     # Compute numerator: dfdsigma : C : depsilon
     term1 = torch.matmul(dfdsigma, torch.matmul(C, depsilon))
