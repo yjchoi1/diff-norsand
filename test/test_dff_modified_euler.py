@@ -9,8 +9,7 @@ from dff_modified_euler import modified_euler
 
 def test_modified_euler_not_implemented():
     """Test that modified_euler raises NotImplementedError when called."""
-    with pytest.raises(NotImplementedError):
-        modified_euler()
+    raise NotImplementedError("This function is not yet implemented")
 
 
 if __name__ == "__main__":
