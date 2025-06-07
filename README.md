@@ -8,19 +8,12 @@ A differentiable implementation of the NorSand constitutive model for sand using
 
 ## Overview
 
-The Diff NorSand project provides both differentiable (PyTorch) and traditional (NumPy) implementations of the NorSand constitutive model. The differentiable version enables:
+The Diff NorSand project provides both differentiable (PyTorch) and traditional (NumPy) implementations of the NorSand constitutive model. The differentiable version aims to enables:
 
 - **Parameter Calibration**: Gradient-based optimization for model parameters
 - **Inverse Problems**: Back-analysis of experimental data  
 - **Sensitivity Analysis**: Automated computation of parameter sensitivities
 - **Machine Learning Integration**: Seamless integration with neural networks
-
-## Key Features to implement
-
-- 📊 **Complete Differentiable NorSand Model**: Ensures differentiability for stress updating, drift correction, and substepping.
-- 🧮 **Automatic Differentiation**: Full PyTorch integration for gradients
-- 📚 **Documentation**: Detailed API docs with mathematical background
-- 🎯 **Parameter Optimization**: Built-in support for gradient-based calibration
 
 ## Quick Start
 
@@ -42,6 +35,8 @@ Comprehensive documentation is on updated available with:
 - **Mathematical Background**: Complete theoretical framework
 - **Getting Started Guide**: Step-by-step introduction
 
+Visit [https://yjchoi1.github.io/diff-norsand/](https://yjchoi1.github.io/diff-norsand/)
+
 ### Building Documentation
 
 ```bash
@@ -57,20 +52,13 @@ The documentation includes:
 
 ## Development Status
 
-This is a development version intended for research and evaluation. The API may change in future versions based on user feedback. 
-
-## Contributing
-
-Contributions are welcome! Please see the [Development Guide](docs/source/development.rst) for:
-
-- Development setup
-- Coding standards  
-- Testing guidelines
-- Pull request process
+This is a development version intended for research and evaluation. The API may change in future versions based on user feedback. Contributions are welcome.
 
 ## License
 
 N/A
 
 
-## Acknowledgements
+## Inspiration
+[NorSand Documentation](https://srinivas12viv.github.io/NorSand/)
+Sean, J. (2025). NORSAND Implementation in Additive and Multiplicative Elastoplasticity. Master thesis, Georgia Institute of Technology.
