@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install torch numpy matplotlib pytest pytest-json-report
+        pip install torch numpy matplotlib pytest pytest-json-report pandas
     
     - name: Test Combined Diff
       run: |
