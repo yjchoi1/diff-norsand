@@ -150,7 +150,7 @@ def findp_imax(chi_i: torch.Tensor, psi_i: torch.Tensor, p: torch.Tensor, M_itc:
         D_{min} = \chi_i \psi_i
         
     .. math::
-        p_{imax} = p \exp\left(-\frac{D_{min}}{M_{itc}}\right)
+        p_{imax} = p \exp( -\frac{D_{min}}{M_{itc}} )
     
     Args:
         chi_i: Dilatancy parameter :math:`\chi_i`

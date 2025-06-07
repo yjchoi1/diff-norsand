@@ -326,13 +326,13 @@ def findCe(
 
 
 def voigt_norm(voigt_vec: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute L2 norm of stress tensor in Voigt notation with proper scaling.
     
     The Frobenius norm of a stress tensor represented in Voigt notation is:
     
     .. math::
-        ||\boldsymbol{\sigma}||_F = \sqrt{\sum_{i=1}^{3} \sigma_{ii}^2 + 2\sum_{i=4}^{6} \sigma_{ij}^2}
+        ||\boldsymbol{\sigma}||_F = \sqrt{\sum_{i=1}^{3} \sigma_{ii}^2 + 2(\sigma_{12}^2 + \sigma_{13}^2 + \sigma_{23}^2)}
         
     .. math::
         = \sqrt{\sigma_{11}^2 + \sigma_{22}^2 + \sigma_{33}^2 + 2(\sigma_{12}^2 + \sigma_{13}^2 + \sigma_{23}^2)}
@@ -353,7 +353,7 @@ def voigt_norm(voigt_vec: torch.Tensor) -> torch.Tensor:
 
 
 def dJ2J3(sigma: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute derivatives of J2, J3 invariants with respect to sigma using PyTorch's autodiff
     
     Args:
