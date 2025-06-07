@@ -15,7 +15,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from diff_norsand_stress_correction import stressCorrection as stressCorrection_diff
-from norsand_functions import stressCorrection as stressCorrection_np
+from norsand_py.norsand_functions import stressCorrection as stressCorrection_np
 
 def main():
     print("=" * 80)

@@ -8,8 +8,8 @@ import numpy as np
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from diff_norsand_functions import findM, findM_i, findM_itc, findchi_i, findpsipsii, findp_imax, findF, finddFdsigma, findp_ipsi_iM_i, findC_p, finddFdepsilon_p, find_dlambda_p
 from diff_utils import stress_decomp, find_sJ2J3, lode_angle, vol_dev
-from norsand_functions import findp_ipsi_iM_i as findp_ipsi_iM_i_np
-from norsand_functions import find_dlambda_p as find_dlambda_p_np
+from norsand_py.norsand_functions import findp_ipsi_iM_i as findp_ipsi_iM_i_np
+from norsand_py.norsand_functions import find_dlambda_p as find_dlambda_p_np
 
 def test_findM_differentiable():
     """Test that findM is differentiable with respect to its inputs."""

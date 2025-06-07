@@ -6,7 +6,7 @@ import numpy as np
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from diff_norsand_pegasus import pegasus
-from norsand_functions import pegasus as pegasus_np
+from norsand_py.norsand_functions import pegasus as pegasus_np
 
 
 def test_pegasus_differentiable(test_mode='fast'):

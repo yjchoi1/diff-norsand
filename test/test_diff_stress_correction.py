@@ -39,7 +39,7 @@ import numpy as np
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from diff_norsand_stress_correction import stressCorrection as stressCorrection_diff
-from norsand_functions import stressCorrection as stressCorrection_np
+from norsand_py.norsand_functions import stressCorrection as stressCorrection_np
 from diff_utils import stress_decomp, lode_angle
 from diff_norsand_functions import findM, findF, findpsipsii, findM_i
 
