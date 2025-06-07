@@ -1,6 +1,7 @@
 # Diff NorSand - Differentiable NorSand Constitutive Model
 
-[![Version](https://img.shields.io/badge/version-0.1--dev-orange.svg)](https://github.com/your-repo/diff-norsand)
+[![Version](https://img.shields.io/badge/version-0.1--dev-orange.svg)](https://github.com/yjchoi1/diff-norsand)
+[![Tests](https://github.com/yjchoi1/diff-norsand/workflows/Tests/badge.svg)](https://github.com/yjchoi1/diff-norsand/actions)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.9+-red.svg)](https://pytorch.org/)
 
@@ -14,6 +15,19 @@ The Diff NorSand project provides both differentiable (PyTorch) and traditional 
 - **Inverse Problems**: Back-analysis of experimental data  
 - **Sensitivity Analysis**: Automated computation of parameter sensitivities
 - **Machine Learning Integration**: Seamless integration with neural networks
+
+## Test Status
+
+| Test Module | Description |
+|-------------|-------------|
+| **test_combined_diff.py** | Combined differential operations |
+| **test_dff_modified_euler.py** | Modified Euler integration method |
+| **test_diff_norsand_fn.py** | Core NorSand constitutive functions |
+| **test_diff_pegasus.py** | Pegasus root finding algorithm |
+| **test_diff_stress_correction.py** | Stress correction algorithms |
+| **test_diff_utils.py** | Differential utility functions |
+
+*Click the Tests badge above to see detailed test results and individual test status.*
 
 ## Quick Start
 
