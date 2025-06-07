@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Tuple, List, Union
-from utils import (
+from norsand_py.norsand_utils import (
     stress_decomp, find_sJ2J3, vol_dev, lode_angle, 
     findCe, voigt_norm, dJ2J3
 )
@@ -345,6 +345,7 @@ def findp_ipsi_iM_i(N: float, chi_i: float, lamb: float, M_tc: float, psi: float
                 Mi = Mi_test
         elif psii_test < 0:
             F = a * x_test**2 + (a + 1 + psi_term) * x_test + (psi_term - (q / p) / M + 1)
+            # NOTE: Why Mi_test > 0.1 * M?
             if np.abs(F) <= 1e-6 and Mi_test < M and Mi_test > 0.1 * M:
                 psii = psii_test
                 p_i = pi_test
@@ -366,8 +367,6 @@ def pegasus(alpha0: float, alpha1: float, FTOL: float, dsig_trial: np.ndarray,
         sigma_vec: Initial stress vector
         M_i: Image stress ratio
         p_i: Image mean pressure
-        flag: Flag for elastic unloading
-        F1_ep_unl: Yield function value for elastic unloading
         MAXITS: Maximum number of iterations
         
     Returns:
@@ -379,14 +378,10 @@ def pegasus(alpha0: float, alpha1: float, FTOL: float, dsig_trial: np.ndarray,
     F0 = findF(p0, q0, M_i, p_i)
     
     # Elastic to plastic
-    if flag == 0:
-        sigma1 = sigma_vec + alpha1 * dsig_trial
-        p1, q1 = stress_decomp(sigma1)
-        F1 = findF(p1, q1, M_i, p_i)
-    # Elastic unloading involved
-    else:
-        F1 = F1_ep_unl
-
+    sigma1 = sigma_vec + alpha1 * dsig_trial
+    p1, q1 = stress_decomp(sigma1)
+    F1 = findF(p1, q1, M_i, p_i)
+    
     # Begin loop, iterating alpha values to find correct alpha
     for i in range(1, MAXITS + 1):
         alpha = alpha1 - F1 * (alpha1 - alpha0) / (F1 - F0)

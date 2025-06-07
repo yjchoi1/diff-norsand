@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from norsand_functions import *
-from plotting import plot_all_results
+from norsand_py.plotting import plot_all_results
 
 def main():
     """
@@ -13,33 +13,33 @@ def main():
     
     # List material properties based on test type
     if soiltest == 1 or soiltest == 2:  # Triaxial
-        Gamma = 0.9
-        Lambda = 0.02
-        M_tc = 1.20
-        N = 0.30
-        H0 = 300
-        Hy = 50
-        Chi_tc = 3.5
-        Ir = 300
-        nu = 0.15
-        Psi_0 = 0.05
-        G_max = 40000
-        p_ref = 100
-        m = 0
+        Gamma    = 0.9        # Critical state intercept at p=1kPa in e-ln(p) space
+        Lambda = 0.02      # Critical state line slope in e-ln(p) space
+        M_tc = 1.20        # Critical state stress ratio in triaxial compression
+        N = 0.30           # Volumetric coupling parameter
+        H0 = 300           # Hardening modulus at zero state parameter
+        Hy = 50            # Hardening modulus state parameter multiplier
+        Chi_tc = 3.5       # Dilatancy parameter in triaxial compression
+        Ir = 300           # Plastic rigidity index
+        nu = 0.15          # Poisson's ratio
+        Psi_0 = 0.05       # Initial state parameter (positive = loose, negative = dense)
+        G_max = 40000      # Maximum shear modulus
+        p_ref = 100        # Reference pressure for modulus calculation
+        m = 0              # Pressure exponent for modulus
     elif soiltest == 3:  # Plane strain
-        Gamma = 1.0
-        Lambda = 0.03
-        M_tc = 1.40
-        N = 0.40
-        H0 = 75.0
-        Hy = 375.0
-        Chi_tc = 4.5
-        Ir = 400
-        nu = 0.15
-        Psi_0 = -0.15
-        G_max = 40000
-        p_ref = 100
-        m = 0
+        Gamma = 1.0        # Critical state intercept at p=1kPa in e-ln(p) space
+        Lambda = 0.03      # Critical state line slope in e-ln(p) space
+        M_tc = 1.40        # Critical state stress ratio in triaxial compression
+        N = 0.40           # Volumetric coupling parameter
+        H0 = 75.0          # Hardening modulus at zero state parameter
+        Hy = 375.0         # Hardening modulus state parameter multiplier
+        Chi_tc = 4.5       # Dilatancy parameter in triaxial compression
+        Ir = 400           # Plastic rigidity index
+        nu = 0.15          # Poisson's ratio
+        Psi_0 = -0.15      # Initial state parameter (negative = dense soil)
+        G_max = 40000      # Maximum shear modulus
+        p_ref = 100        # Reference pressure for modulus calculation
+        m = 0              # Pressure exponent for modulus
     
     # Set up Bardet drivers based on type of test
     if soiltest == 1:  # Undrained triaxial test
@@ -140,6 +140,7 @@ def main():
     # Begin loop
     for i in range(max_steps):
         # Cap shear stresses
+        # NOTE: Is this necessary?
         for j in range(3, 6):
             if sigma_vec[j] < 0.1:
                 sigma_vec[j] = 0

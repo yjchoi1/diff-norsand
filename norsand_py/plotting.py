@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 import os
 
 def plot_pq_stress_path(results, save_dir='.'):
@@ -101,6 +102,86 @@ def plot_plane_strain_strains(results, save_dir='.'):
     plt.savefig(os.path.join(save_dir, 'plane_strain_strains.png'))
     plt.close()
 
+def save_pq_stress_path_csv(results, save_dir='.'):
+    """Save p-q stress path data to CSV"""
+    df = pd.DataFrame({
+        'p (kPa)': results['p_list'],
+        'q (kPa)': results['q_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'p_q_stress_path.csv'), index=False)
+
+def save_q_eps_curve_csv(results, save_dir='.'):
+    """Save q-epsilon curve data to CSV"""
+    df = pd.DataFrame({
+        'ε_A': results['eps1_list'],
+        'q (kPa)': results['q_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'q_eps_A_curve.csv'), index=False)
+
+def save_pi_eps_curve_csv(results, save_dir='.'):
+    """Save p_i-eps1 curve data to CSV"""
+    df = pd.DataFrame({
+        'ε_A': results['eps1_list'],
+        'p_i (kPa)': results['p_ilist']
+    })
+    df.to_csv(os.path.join(save_dir, 'p_i_eps_A_curve.csv'), index=False)
+
+def save_dsigma_eps_curve_csv(results, save_dir='.'):
+    """Save dsigma-eps curve data to CSV"""
+    df = pd.DataFrame({
+        'ε_A': results['eps1_list'],
+        'dsigma1 (kPa)': results['dsigma1_list'],
+        'dsigma2 (kPa)': results['dsigma2_list'],
+        'dsigma3 (kPa)': results['dsigma3_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'dsigma_eps_A_curve.csv'), index=False)
+
+def save_strains_curve_csv(results, save_dir='.'):
+    """Save strains curve data to CSV"""
+    df = pd.DataFrame({
+        'ε_1': results['eps1_list'],
+        'ε_vol': results['eps_vol_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'strains_curve.csv'), index=False)
+
+def save_Dp_eta_curve_csv(results, save_dir='.'):
+    """Save Dp-eta curve data to CSV"""
+    df = pd.DataFrame({
+        'D^p': results['D_list'],
+        'η': results['eta_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'Dp_eta_curve.csv'), index=False)
+
+def save_plane_strain_stresses_csv(results, save_dir='.'):
+    """Save plane strain stresses data to CSV"""
+    df = pd.DataFrame({
+        'ε_1': results['eps1_list'],
+        'σ_1 (kPa)': results['s1_list'],
+        'σ_2 (kPa)': results['s2_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'plane_strain_stresses.csv'), index=False)
+
+def save_plane_strain_strains_csv(results, save_dir='.'):
+    """Save plane strain strains data to CSV"""
+    df = pd.DataFrame({
+        'ε_1': results['eps1_list'],
+        'ε_vol': results['eps_vol_list']
+    })
+    df.to_csv(os.path.join(save_dir, 'plane_strain_strains.csv'), index=False)
+
+def save_all_results_csv(results, save_dir='.'):
+    """Save all results to CSV files"""
+    save_pq_stress_path_csv(results, save_dir)
+    save_q_eps_curve_csv(results, save_dir)
+    save_pi_eps_curve_csv(results, save_dir)
+    save_dsigma_eps_curve_csv(results, save_dir)
+    save_strains_curve_csv(results, save_dir)
+    save_Dp_eta_curve_csv(results, save_dir)
+    
+    if results['soiltest'] == 3:
+        save_plane_strain_stresses_csv(results, save_dir)
+        save_plane_strain_strains_csv(results, save_dir)
+
 def plot_all_results(results, save_dir='.'):
     """Plot all results"""
     plot_pq_stress_path(results, save_dir)
@@ -112,4 +193,7 @@ def plot_all_results(results, save_dir='.'):
     
     if results['soiltest'] == 3:
         plot_plane_strain_stresses(results, save_dir)
-        plot_plane_strain_strains(results, save_dir) 
+        plot_plane_strain_strains(results, save_dir)
+    
+    # Also save all results as CSV files
+    save_all_results_csv(results, save_dir) 
