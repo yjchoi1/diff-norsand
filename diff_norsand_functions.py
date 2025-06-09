@@ -61,7 +61,7 @@ def findM_i(M: torch.Tensor, M_tc: torch.Tensor,
 
 
 def findM_itc(N: torch.Tensor, chi_i: torch.Tensor, psi_i: torch.Tensor, M_tc: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute M_itc
     
     The triaxial compression image stress ratio is:
@@ -105,7 +105,7 @@ def findchi_i(M_tc: torch.Tensor, Chi_tc: torch.Tensor, Lambda: torch.Tensor) ->
 
 def findpsipsii(Gamma: torch.Tensor, Lambda: torch.Tensor, p: torch.Tensor, 
                 p_i: torch.Tensor, e: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
+    r"""
     Compute psi and psi_i parameters
     
     The state parameters are computed as:
@@ -141,7 +141,7 @@ def findpsipsii(Gamma: torch.Tensor, Lambda: torch.Tensor, p: torch.Tensor,
 
 
 def findp_imax(chi_i: torch.Tensor, psi_i: torch.Tensor, p: torch.Tensor, M_itc: torch.Tensor) -> torch.Tensor:
-    """
+    r"""
     Compute p_imax parameter
     
     The maximum image pressure is computed as:
@@ -224,7 +224,7 @@ def finddFdsigma(sigma_vec: torch.Tensor, M_i: torch.Tensor, p_i: torch.Tensor) 
 
 
 def findp_ipsi_iM_i(N, chi_i, lambd, M_tc, psi, p, q, M):
-    """
+    r"""
     Find p_i, psi_i and M_i using PyTorch (differentiable version)
     
     Solves the system of equations for the image state parameters by finding roots of:
